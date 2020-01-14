@@ -7,7 +7,9 @@ import * as fs from 'fs';
  * Programa de testeo de EpTO con numero de nodos indefinido
  */
 
-const n: number = 2;
+const n: number = 4;
+const delayMessageMillis: number = 50;
+const initialPort: number = 5000;
 var clients: Client[] = [];
 var messageInterval: NodeJS.Timeout;
 var nextMessage: number = 0;
@@ -21,7 +23,7 @@ async function startClients(): Promise<void[]> {
     var clientPromises: Promise<void>[] = [];
 
     for(var i = 0; i < n; i++) {
-        var client: Client = new Client('client' + (i+1), '127.0.0.1', 5000 + i + 1);
+        var client: Client = new Client('client' + (i+1), '127.0.0.1', initialPort + i + 1);
         clientPromises.push(client.init());
         console.log("Preparado cliente " + client.id);
         clients.push(client);
@@ -64,12 +66,12 @@ startClients()
 
         for(var e = 0; e < n; e++) {
             if(i != e) {
-                clients[i].connect('127.0.0.1', 5000 + e + 1);
+                clients[i].connect('127.0.0.1', initialPort + e + 1);
             }
         }
     }
 
-    messageInterval = setInterval(randomMessage, 200);
+    messageInterval = setInterval(randomMessage, delayMessageMillis);
 })
 .catch((error: any) => {
     console.log("Error al iniciar los clientes:");
