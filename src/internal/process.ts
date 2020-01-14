@@ -14,7 +14,7 @@ import Ball from "./ball";
  */
 export default class Process extends EventEmitter {
 
-    private static _eventIdInc = 0;                             // Variable para general secuencialmente los ids de los eventos
+    private _eventIdInc = 0;                                    // Variable para general secuencialmente los ids de los eventos
     private _id: string;                                        // ID único del proceso
     private _ip: string;                                        // IP del proceso
     private _port: number;                                      // Puerto de escucha del proceso
@@ -128,7 +128,7 @@ export default class Process extends EventEmitter {
      */
     public epToBroadcast(msg: Message): void {
 
-        const eventId: string = this._id + "_#" + Process.newEventId();
+        const eventId: string = this._id + "_#" + this.newEventId();
 
         const event: Event = new Event(eventId, msg);
         this._disseminationComponent.epToBroadcast(event);
@@ -137,7 +137,7 @@ export default class Process extends EventEmitter {
     /**
      * Devuelve un nuevo id de evento
      */
-    private static newEventId(): number {
+    private newEventId(): number {
         return this._eventIdInc++;
     }
 }

@@ -1,36 +1,75 @@
 import Client from './app/client';
 import Message from './app/message';
 import Event from './internal/event';
+import * as fs from 'fs';
 
 /**
- * Programa de testeo
+ * Programa de testeo de EpTO con numero de nodos indefinido
  */
 
-var client1 = new Client('client1', '127.0.0.1', 5551);
-var client2 = new Client('client2', '127.0.0.1', 5552);
+const n: number = 2;
+var clients: Client[] = [];
+var messageInterval: NodeJS.Timeout;
+var nextMessage: number = 0;
 
-async function startClients(): Promise<void> {
+if(!fs.existsSync("test/")) {
+    fs.mkdirSync("test/");
+}
 
-    await client1.init();
-    await client2.init();
+async function startClients(): Promise<void[]> {
+
+    var clientPromises: Promise<void>[] = [];
+
+    for(var i = 0; i < n; i++) {
+        var client: Client = new Client('client' + (i+1), '127.0.0.1', 5000 + i + 1);
+        clientPromises.push(client.init());
+        console.log("Preparado cliente " + client.id);
+        clients.push(client);
+    }
+
+    return Promise.all(clientPromises);
+}
+
+function randomMessage() {
+
+    var clientPos: number = Math.floor(Math.random() * n);
+    var randomClient: Client = clients[clientPos];
+    
+    randomClient.epToBroadcast(new Message("Mensaje automatico " + (++nextMessage)));
+}
+
+function listenMessages(client: Client) {
+
+    if(fs.existsSync("test/" + client.id + ".log")) {
+        fs.unlink('test/' + client.id + '.log', (err) => {
+            if (err) throw err;
+        });
+    }
+    
+    var nextOutputMessage: number = 0;
+
+    client.on('message', (event: Event) => {
+        // console.log("CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
+        const msg: string = "(" + (++nextOutputMessage) +  ") " + event.sourceId + "(" + event.id +  ") > " + event.msg.data + '\n';
+        fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
+    });
 }
 
 startClients()
 .then(() => {
-    client1.on('message', (event: Event) => {
-        console.log(event.sourceId + "(" + event.id +  ") > " + event.msg.data);
-    });
 
-    client2.on('message', (event: Event) => {
-        console.log(event.sourceId + "(" + event.id +  ") > " + event.msg.data);
-    });
+    for(var i = 0; i < n; i++) {
 
-    client1.connect('127.0.0.1', 5552);
-    client2.connect('127.0.0.1', 5551);
+        listenMessages(clients[i]);
 
-    client1.epToBroadcast(new Message("Hola que tal soy el cliente 1"));
-    client2.epToBroadcast(new Message("Hola que tal soy el cliente 2"));
-    client1.epToBroadcast(new Message("Hola que tal soy el cliente 1 otra vez"));
+        for(var e = 0; e < n; e++) {
+            if(i != e) {
+                clients[i].connect('127.0.0.1', 5000 + e + 1);
+            }
+        }
+    }
+
+    messageInterval = setInterval(randomMessage, 200);
 })
 .catch((error: any) => {
     console.log("Error al iniciar los clientes:");
@@ -39,9 +78,14 @@ startClients()
 });
 
 function closeClients(): void {
-    client1.close()
-    client2.close()
-    process.exit();
+    for(var i: 0; i < n; i++) {
+        clients[i].close();
+    }
+    clearInterval(messageInterval);
+    console.log("Cerrando conexiones y clientes...");
+    setTimeout(function() {
+        process.exit();
+    }, 2000);
 }
 
 // Escucha la señal CTRL + C y cierra el programa correctamente

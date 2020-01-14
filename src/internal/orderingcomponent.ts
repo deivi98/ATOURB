@@ -10,7 +10,7 @@ import DisseminationComponent from './disseminationcomponent';
  */
 export default class OrderingComponent {
 
-    // Variables algoritmo EpTO
+    // Variables algoritmo
     private _recieved: { [id: string]: Event; };        // Conjunto de eventos recibidos por el componente
     private _delivered: { [id: string]: Event; };       // Conjunto de eventos ya entregados a la aplicación
     private _lastDeliveredTs: number;                   // Tiempo del último evento entregado
@@ -110,5 +110,14 @@ export default class OrderingComponent {
      */
     private isDeliverable(event: Event): boolean {
         return event.ttl > DisseminationComponent.TTL;
+    }
+
+    /**
+     * Devuelve si el evento ha sido previamente entregado al componente de ordenacion
+     * anteriormente
+     * @param event evento a comprobar
+     */
+    public hasBeenSeen(event: Event): boolean {
+        return this._recieved[event.id] !== undefined;
     }
 }

@@ -2,7 +2,6 @@ import Process from './process';
 import Event from './event';
 import Clock from './clock';
 import { Dealer } from "zeromq";
-import PSS from './pss';
 import Ball from './ball';
 
 /**
@@ -12,11 +11,10 @@ import Ball from './ball';
  */
 export default class DisseminationComponent {
     
-    // Variables algoritmo EpTO
-    private static K: number = 5;                   // Tamaño de la muestra aleatorio de procesos
-    public static TTL: number = 3;                  // Maximo numero de saltos de los eventos
+    // Variables algoritmo
+    public static TTL: number = 2;                  // Maximo numero de saltos de los eventos (Numero de nodos menos 1)
     private _nextBall: { [id: string]: Event; };    // Conjunto de eventos a enviar en la proxima ronda
-    private _peers: Dealer[];                       // Conjunto de conexiones correctas
+    private _peers: Dealer[];                       // Conjunto de conexiones correctas (N nodos)
     
     // Variables adicionales
     private _process: Process;                      // Proceso al que pertenece
@@ -71,6 +69,11 @@ export default class DisseminationComponent {
                 } else {
                     // Si no, lo añadimos a la lista de proximos eventos a difundir
                     this._nextBall[event.id] = event;
+                    // Si no existia en la proxima ball, y es la primera vez que
+                    // este proceso ve este evento
+                    // if(!this._process.orderingComponent.hasBeenSeen(event)) {
+                    //     this._nextBall[event.id] = event;
+                    // }
                 }
             }
             // updateClock(event.ts) Solo si se usa relojes logicos
@@ -91,13 +94,11 @@ export default class DisseminationComponent {
         // Obtiene al lista de los eventos
         const events: Event[] = Object.values(context._nextBall);
 
-        // Si no es nula, escoge una muestra aleatoria de conexiones,
-        // crea una ball con los eventos, la serializa y la envia a todas las conexiones
+        // Si no es nula, crea una ball con los eventos, la serializa y la envia a todas las conexiones
         if(events.length > 0) {
-            const selectedPeers: Dealer[] = PSS.sample(context._peers, DisseminationComponent.K);
 
             const ball = new Ball(events);
-            selectedPeers.forEach((peer: Dealer) => {
+            context._peers.forEach((peer: Dealer) => {
                 peer.send(ball.serialize());
             });
         }
