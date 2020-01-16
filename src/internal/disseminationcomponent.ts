@@ -12,7 +12,7 @@ import Ball from './ball';
 export default class DisseminationComponent {
     
     // Variables algoritmo
-    public static TTL: number = 2;                  // Maximo numero de saltos de los eventos (Numero de nodos menos 1)
+    public static TTL: number = 2;                  // Maximo numero de saltos de los eventos (Numero de nodos)
     private _nextBall: { [id: string]: Event; };    // Conjunto de eventos a enviar en la proxima ronda
     private _peers: Dealer[];                       // Conjunto de conexiones correctas (N nodos)
     
