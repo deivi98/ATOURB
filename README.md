@@ -3,6 +3,11 @@
 
     Implementación simple del algoritmo en NodeJS.
 
+    - Numero de veces que recibes el mensaje actua igual al TTL de EpTO
+    - El numero de veces necesario de recepciones de un mismo mensaje para garantizar que todo proceso correcto lo ha recibido es n / 2 + 1
+    - Utilizar proceso ordenacion de EpTO pero sin rondas
+    - Si se recibe un mensaje 4 veces despues de que ya hayan sido entregado mensajes posteriores a este, NO se descarta, se entrega en desorden y se indica que esta en desorden
+
 ## Estructura del proyecto:
 ```
 .
