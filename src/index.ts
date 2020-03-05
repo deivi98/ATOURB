@@ -24,6 +24,19 @@ if(!fs.existsSync("network.json")) {
 // Leemos configuracion
 const networkConfig = JSON.parse(fs.readFileSync('network.json', 'utf8'));
 
+function countTotalClients(networkConfig): number {
+    let count: number = 0;
+
+    Object.values(networkConfig).forEach((nodeConfig) => {
+        count += parseInt(nodeConfig["clients"]);
+    });
+
+    return count;
+}
+
+const N: number = countTotalClients(networkConfig);
+const F: number = N / 2 - 1;
+
 // Eliminamos la carpeta test si existe y la volvemos a crear
 if(fs.existsSync("test/")) {
     rimraf.sync("test/");
@@ -49,7 +62,7 @@ async function startLocalClients(): Promise<void[]> {
     const nodeName: string = localNetwork["nodeName"];
 
     for(var i = 1; i <= n; i++) {
-        var client: Client = new Client('n-' + nodeName + '-client' + i, '0.0.0.0', initialPort + i);
+        var client: Client = new Client('n-' + nodeName + '-client' + i, '0.0.0.0', initialPort + i, N, F);
         clientPromises.push(client.init());
         console.log("Preparado cliente " + client.id);
         localClients.push(client);

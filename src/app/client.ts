@@ -18,10 +18,10 @@ export default class Client extends EventEmitter {
      * @param ip ip del cliente
      * @param port puerto de escucha
      */
-    constructor(id: string, ip: string, port: number) {
+    constructor(id: string, ip: string, port: number, n: number, f: number) {
         super();
         this._id = id;
-        this._process = new Process("p-" + id, ip, port);
+        this._process = new Process("p-" + id, ip, port, n, f);
     }
     
     /**
@@ -97,8 +97,8 @@ export default class Client extends EventEmitter {
 if(typeof module !== 'undefined' && !module.parent) {
 
     // Se asegura de recibir todos los parametros
-    if(process.argv.length != 5) {
-        console.log("Use: ts-node client.ts <id> <ip> <port>");
+    if(process.argv.length != 6) {
+        console.log("Use: ts-node client.ts <id> <ip> <port> <total of nodes>");
         process.exit();
     }
 
@@ -106,9 +106,11 @@ if(typeof module !== 'undefined' && !module.parent) {
     const id: string = process.argv[2];
     const ip: string = process.argv[3];
     const port: number = parseInt(process.argv[4]);
+    const n: number = parseInt(process.argv[5]);
+    const f: number = n / 2 - 1;
 
     // Creamos e iniciamos el cliente
-    const client = new Client(id, ip, port);
+    const client = new Client(id, ip, port, n, f);
 
     client.init()
     .then(() => {

@@ -11,8 +11,8 @@ import Connection from './connection';
 export default class URBTO {
     
     // Variables algoritmo URBTO
-    private static N: number = 3;                                      // Numero de nodos totales del a red
-    public static F: number = 1;                                       // Numero posible de fallos
+    private _n: number;                                                  // Numero de nodos totales del a red
+    private _f: number;                                                  // Numero posible de fallos
     private _peers: Connection[];                                       // Conjunto de conexiones correctas
     private _recieved: { [id: string]: Event; };                        // Conjunto de eventos recibidos
     private _lastDeliveredProcessEvents: { [id: string]: Event; };      // Conjunto de ultimos eventos entregados a la aplicacion por proceso
@@ -25,12 +25,14 @@ export default class URBTO {
      * Constructor del componente
      * @param process proceso al que pertenece
      */
-    constructor(process: Process) {
+    constructor(process: Process, n: number, f: number) {
         this._process = process;
         this._recieved = {};
         this._lastDeliveredProcessEvents = {};
         this._lastDeliveredTs = 0;
         this._peers = [];
+        this._n = n;
+        this._f = f;
     }
 
     /**
@@ -151,7 +153,7 @@ export default class URBTO {
      * @param event evento a comprobar
      */
     private isDeliverable(event: Event): boolean {
-        return event.nor >= URBTO.N - URBTO.F;
+        return event.nor >= this._n - this._f;
     }
     
 }
