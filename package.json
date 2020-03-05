@@ -1,5 +1,5 @@
 {
-  "name": "urb-epto",
+  "name": "urbto",
   "version": "1.0.0",
   "description": "Implementacion simple del algoritmo EpTO y URB en NodeJS",
   "main": "index.ts",
@@ -12,16 +12,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deivi98/URB-EpTO.git"
+    "url": "git+https://github.com/deivi98/URBTO.git"
   },
   "author": "David González",
   "license": "SEE LICENSE IN LICENSE",
   "bugs": {
-    "url": "https://github.com/deivi98/URB-EpTO/issues"
+    "url": "https://github.com/deivi98/URBTO/issues"
   },
-  "homepage": "https://github.com/deivi98/URB-EpTO#readme",
+  "homepage": "https://github.com/deivi98/URBTO#readme",
   "dependencies": {
     "@types/node": "^12.12.6",
+    "@types/readline-sync": "^1.4.3",
+    "@types/rimraf": "^2.0.3",
+    "@types/sprintf-js": "^1.1.2",
+    "readline-sync": "^1.4.10",
+    "rimraf": "^3.0.2",
+    "sprintf-js": "^1.1.2",
     "typescript": "^3.7.2",
     "zeromq": "^6.0.0-beta.2"
   }

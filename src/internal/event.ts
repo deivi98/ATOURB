@@ -9,7 +9,7 @@ export default class Event {
 
     private _id: string;            // ID único de evento (Incluso entre infinitos procesos)
     private _sourceId: string;      // ID único de proceso/cliente emisor
-    private _ttl: number;           // Número de saltos realizados por el evento
+    private _nor: number;           // Número de recepciones del evento
     private _ts: number;            // Tiempo en el que fue emitido
     private _msg: Message;          // Mensaje del evento
 
@@ -18,11 +18,11 @@ export default class Event {
      * @param id id único del evento
      * @param msg mensaje del evento
      */
-    constructor(id: string, msg: Message) {
+    constructor(id: string, msg: Message, sourceId: string = undefined, nor: number = undefined, ts: number = undefined) {
         this._id = id;
-        this._sourceId = undefined;
-        this._ttl = undefined;
-        this._ts = undefined;
+        this._sourceId = sourceId;
+        this._nor = nor;
+        this._ts = ts;
         this._msg = msg;
     }
 
@@ -48,17 +48,17 @@ export default class Event {
     }
 
     /**
-     * Devuelve el ttl del evento
+     * Devuelve el nor del evento
      */
-    get ttl(): number {
-        return this._ttl;
+    get nor(): number {
+        return this._nor;
     }
 
     /**
      * Setea el ttl del evento
      */
-    set ttl(ttl: number) {
-        this._ttl = ttl;
+    set nor(nor: number) {
+        this._nor = nor;
     }
 
     /**
@@ -87,6 +87,10 @@ export default class Event {
      */
     set msg(msg: Message) {
         this._msg = msg;
+    }
+
+    public copy(): Event {
+        return new Event(this._id, this._msg.copy(), this._sourceId, this._nor, this._ts);
     }
 
     /**

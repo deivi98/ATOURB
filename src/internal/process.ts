@@ -1,10 +1,9 @@
 import { Router, Dealer } from "zeromq";
 import { EventEmitter } from "events";
-import DisseminationComponent from "./disseminationcomponent";
-import OrderingComponent from "./orderingcomponent";
 import Message from "../app/message";
 import Event from "./event";
-import Ball from "./ball";
+import URBTO from "./urbto";
+import Connection from "./connection";
 
 /**
  * Clase Process
@@ -19,8 +18,7 @@ export default class Process extends EventEmitter {
     private _ip: string;                                        // IP del proceso
     private _port: number;                                      // Puerto de escucha del proceso
     private _router: Router;                                    // Router de escucha del proceso
-    private _disseminationComponent: DisseminationComponent;    // Componente de difusión
-    private _orderingComponent: OrderingComponent;              // Componente de ordenación
+    private _urbto: URBTO;                                      // Componente URBTO
 
     /**
      * Constructor del proceso
@@ -34,8 +32,7 @@ export default class Process extends EventEmitter {
         this._ip = ip;
         this._port = port;
         this._router = new Router();
-        this._disseminationComponent = new DisseminationComponent(this);
-        this._orderingComponent = new OrderingComponent(this);
+        this._urbto = new URBTO(this);
     }
 
     /**
@@ -62,8 +59,8 @@ export default class Process extends EventEmitter {
     /**
      * Devuelve el componente de ordenación del proceso
      */
-    get orderingComponent(): OrderingComponent {
-        return this._orderingComponent;
+    get urbto(): URBTO {
+        return this._urbto;
     }
 
     /**
@@ -77,7 +74,6 @@ export default class Process extends EventEmitter {
         });
 
         this.listen();
-        this._disseminationComponent.startFirstRound();
     }
 
     /**
@@ -85,11 +81,15 @@ export default class Process extends EventEmitter {
      * @param ip ip del proceso externo
      * @param port puerto del proceso externo
      */
-    public connect(ip: string, port: number) {
+    public connect(id: string, ip: string, port: number) {
 
         const connectionDealer: Dealer = new Dealer();
+        connectionDealer.routingId = this._id;
         connectionDealer.connect("tcp://" + ip + ":" + port);
-        this._disseminationComponent.peers.push(connectionDealer);
+
+        const connection: Connection = new Connection(id, connectionDealer);
+
+        this._urbto.peers.push(connection);
     }
 
     /**
@@ -97,9 +97,8 @@ export default class Process extends EventEmitter {
      */
     public close(): void {
 
-        this._disseminationComponent.endRounds();
-        this._disseminationComponent.peers.forEach((dealer: Dealer) => {
-            dealer.close();
+        this._urbto.peers.forEach((peer: Connection) => {
+            peer.dealer.close();
         });
         this._router.close();
     }
@@ -112,11 +111,13 @@ export default class Process extends EventEmitter {
         const processContext: Process = this;
 
         this._router.receive().then((buffer) => {
-            const serializedBall: Object = JSON.parse(buffer[1].toString());
+            const origin: string = buffer[0].toString();
+            const event: Event = Event.deserialize(JSON.parse(buffer[1].toString()));
 
-            var ball: Ball = Ball.deserialize(serializedBall);
+            // console.log(origin);
+            // console.log(event);
 
-            this._disseminationComponent.recieveBall(ball);
+            this._urbto.recieveHandler(event, origin);
             processContext.listen(); // Escuchamos al siguiente
         });
     }
@@ -126,12 +127,12 @@ export default class Process extends EventEmitter {
      * al componente de difusión
      * @param msg Mensaje a enviar
      */
-    public epToBroadcast(msg: Message): void {
+    public urbtoBroadcast(msg: Message): void {
 
         const eventId: string = this._id + "_#" + this.newEventId();
 
         const event: Event = new Event(eventId, msg);
-        this._disseminationComponent.epToBroadcast(event);
+        this._urbto.urbtoBroadcast(event);
     }
 
     /**

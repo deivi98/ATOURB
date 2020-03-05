@@ -22,6 +22,10 @@ export default class Message {
         return this._data;
     }
 
+    public copy(): Message {
+        return new Message(this._data);
+    }
+
     /**
      * Serializa el objeto mensaje
      */

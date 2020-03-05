@@ -32,6 +32,20 @@ export default class Client extends EventEmitter {
     }
 
     /**
+     * Devuelve la ip del cliente
+     */
+    get ip(): string {
+        return this._process.ip;
+    }
+
+    /**
+     * Devuelve el puerto del cliente
+     */
+    get port(): number {
+        return this._process.port;
+    }
+
+    /**
      * Inicia el cliente, e inicia la escucha de eventos
      */
     public async init(): Promise<void> {
@@ -39,6 +53,11 @@ export default class Client extends EventEmitter {
         // Cuando el proceso recibe un evento, el cliente lo retransmite a la aplicación
         this._process.on('message', (event: Event) => {
             this.emit('message', event);
+        });
+
+        // Cuando el proceso recibe un evento en desorden, el cliente lo retransmite a la aplicación
+        this._process.on('message-disorder', (event: Event) => {
+            this.emit('message-disorder', event);
         });
 
         return await this._process.init();
@@ -49,10 +68,10 @@ export default class Client extends EventEmitter {
      * @param ip ip de otro cliente
      * @param port puerto de otro cliente
      */
-    public connect(ip: string, port: number): void {
-        this._process.connect(ip, port);
+    public connect(id: string, ip: string, port: number): void {
+        this._process.connect(id, ip, port);
 
-        console.log("Cliente " + this._id + " conectado a " + ip + ":" + port);
+        console.log("Cliente " + this._id + " conectado a " + id + " (" + ip + ":" + port + ")");
     }
 
     /**
@@ -66,8 +85,8 @@ export default class Client extends EventEmitter {
      * Envia un mensaje siguiendo el protocolo EpTo
      * @param msg Mensaje a enviar
      */
-    public epToBroadcast(msg: Message): void {
-        this._process.epToBroadcast(msg);
+    public urbtoBroadcast(msg: Message): void {
+        this._process.urbtoBroadcast(msg);
     }
 }
 
@@ -94,6 +113,10 @@ if(typeof module !== 'undefined' && !module.parent) {
     client.init()
     .then(() => {
 
+        console.log("Introduzca connect:<id>:<ip>:<port> para conectarse a otro cliente.");
+        console.log("Para enviar un mensaje escriba libremente");
+        console.log("---------------------------------------------------------------");
+
         // Una vez iniciado, escuchamos e imprimimos eventos recibidos en cuanto lleguen
         client.on('message', (event: Event) => {
             console.log(event.sourceId + "(" + event.id +  ") > " + event.msg.data);
@@ -106,10 +129,10 @@ if(typeof module !== 'undefined' && !module.parent) {
 
             const args = cmd.split(":");
             
-            if(args.length == 3 && args[0] == "connect") {
-                client.connect(args[1], parseInt(args[2]));
+            if(args.length == 4 && args[0] == "connect") {
+                client.connect(args[1], args[2], parseInt(args[3]));
             } else {
-                client.epToBroadcast(new Message(cmd));
+                client.urbtoBroadcast(new Message(cmd));
             }
         });
 
