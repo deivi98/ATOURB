@@ -110,6 +110,18 @@ function listenMessages(client: Client) {
             fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
         }
     });
+    
+    // Cliente escucha un mensaje en desorden y lo loguea sincronamente en el log (Para evitar desorden al loguear)
+    client.on('message-disorder', (event: Event) => {
+
+        if(manual) {
+            console.log("[DISORDER] CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
+        } else {
+            const id: string = event.id.split("_")[1];
+            const msg: string = sprintfjs.sprintf("[DISORDER] %9d | %20s (%5s) [%20d] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts);
+            fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
+        }
+    });
 }
 
 /**
