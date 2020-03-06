@@ -114,9 +114,6 @@ export default class Process extends EventEmitter {
             const origin: string = buffer[0].toString();
             const event: Event = Event.deserialize(JSON.parse(buffer[1].toString()));
 
-            // console.log(origin);
-            // console.log(event);
-
             this._urbto.recieveHandler(event, origin);
             processContext.listen(); // Escuchamos al siguiente
         });
