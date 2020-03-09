@@ -3,6 +3,7 @@ import Message from './app/message';
 import Event from './internal/event';
 import * as fs from 'fs';
 import * as readlineSync from 'readline-sync';
+import * as readline from 'readline';
 import * as rimraf from 'rimraf';
 import * as sprintfjs from 'sprintf-js';
 
@@ -161,18 +162,42 @@ startLocalClients()
 
     console.log("----------------------------------------------------------------");
     console.log("Todos los clientes han sido iniciados y conectados correctamente");
-    
-    if(readlineSync.keyInYN('Quieres enviar mensaje manualmente? (Si no, estos se enviaran aleatoriamente cada ' + delayMessageMillis + 'ms)')) {
-        console.log("----------------------------------------------------------------");
-        console.log("Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
 
-        manual = true;
-        listenKeyboardMessages();
-    } else {
-        console.log("Envio aleatorio continuo de mensajes aleatorios iniciado");
-        // Inicia el envio continuo de mensajes aleatorios
-        messageInterval = setInterval(randomMessage, delayMessageMillis);
-    }
+    const rd = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rd.question('Quieres enviar mensajes manualmente? (Si no, estos se enviaran aleatoriamente cada ' + delayMessageMillis + 'ms) [s/n]: ', response => {
+        
+        if(response.toLowerCase().startsWith("s")) {
+
+            console.log("----------------------------------------------------------------");
+            console.log("Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
+
+            manual = true;
+            listenKeyboardMessages();
+        } else {
+
+            console.log("Envio aleatorio continuo de mensajes aleatorios iniciado");
+            // Inicia el envio continuo de mensajes aleatorios
+            messageInterval = setInterval(randomMessage, delayMessageMillis);
+        }
+        
+        rd.close();
+    });
+    
+    // if(readlineSync.keyInYN('Quieres enviar mensaje manualmente? (Si no, estos se enviaran aleatoriamente cada ' + delayMessageMillis + 'ms)')) {
+    //     console.log("----------------------------------------------------------------");
+    //     console.log("Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
+
+    //     manual = true;
+    //     listenKeyboardMessages();
+    // } else {
+    //     console.log("Envio aleatorio continuo de mensajes aleatorios iniciado");
+    //     // Inicia el envio continuo de mensajes aleatorios
+    //     messageInterval = setInterval(randomMessage, delayMessageMillis);
+    // }
 
 })
 .catch((error: any) => {
