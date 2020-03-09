@@ -98,7 +98,7 @@ export default class Process extends EventEmitter {
     public close(): void {
 
         this._urbto.peers.forEach((peer: Connection) => {
-            peer.dealer.close();
+            peer.close();
         });
         this._router.close();
     }

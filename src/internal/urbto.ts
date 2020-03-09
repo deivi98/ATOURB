@@ -78,7 +78,9 @@ export default class URBTO {
 
             this._peers.forEach((peer: Connection) => {
                 if(peer.id != senderId) {
-                    peer.dealer.send(event.serialize());
+                    if(!peer.closed) {
+                        peer.dealer.send(event.serialize());
+                    }
                 }
             });
         }

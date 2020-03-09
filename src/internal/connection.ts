@@ -9,6 +9,7 @@ export default class Connection {
 
     private _id: string;          // ID del proceso o cliente de la conexion
     private _dealer: Dealer;      // Dealer de la conexion
+    private _closed: boolean = false;
 
     /**
      * Constructor de la conexion
@@ -28,10 +29,21 @@ export default class Connection {
     }
 
     /**
+     * Devuelve si el socket esta cerrado
+     */
+    get closed(): boolean {
+        return this._closed;
+    }
+
+    /**
      * Devuelve el dealer de la conexion
      */
     get dealer(): Dealer {
         return this._dealer;
     }
 
+    public close(): void {
+        this._closed = true;
+        this._dealer.close();
+    }
 }
