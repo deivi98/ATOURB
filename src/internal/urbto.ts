@@ -76,10 +76,10 @@ export default class URBTO {
             this._recieved[event.id] = event.copy();
             this._recieved[event.id].nor++;
 
-            this._peers.forEach((peer: Connection) => {
+            this._peers.forEach(async (peer: Connection) => {
                 if(peer.id != senderId) {
                     if(!peer.closed) {
-                        peer.dealer.send(event.serialize());
+                        await peer.dealer.send(event.serialize());
                     }
                 }
             });
