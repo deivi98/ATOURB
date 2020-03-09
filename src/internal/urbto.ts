@@ -11,8 +11,8 @@ import Connection from './connection';
 export default class URBTO {
     
     // Variables algoritmo URBTO
-    private _n: number;                                                  // Numero de nodos totales del a red
-    private _f: number;                                                  // Numero posible de fallos
+    private _n: number;                                                 // Numero de nodos totales del a red
+    private _f: number;                                                 // Numero posible de fallos
     private _peers: Connection[];                                       // Conjunto de conexiones correctas
     private _recieved: { [id: string]: Event; };                        // Conjunto de eventos recibidos
     private _lastDeliveredProcessEvents: { [id: string]: Event; };      // Conjunto de ultimos eventos entregados a la aplicacion por proceso
