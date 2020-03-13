@@ -68,6 +68,7 @@ export default class URBTO {
         if(this._recieved[event.id]) {
 
             this._recieved[event.id].nor++;
+            console.log("Recieved " + this._recieved[event.id].nor + " times");
 
             if(this.isDeliverable(this._recieved[event.id])) {
                 this.orderAndDeliverEvents();
@@ -76,10 +77,12 @@ export default class URBTO {
             this._recieved[event.id] = event.copy();
             this._recieved[event.id].nor++;
 
+            console.log("First time received!");
+
             this._peers.forEach((peer: Connection) => {
                 if(peer.id != senderId) {
                     if(!peer.closed) {
-                        console.log("Sent!");
+                        console.log("To: " + peer.id);
                         peer.dealer.send(event.serialize());
                     }
                 }
