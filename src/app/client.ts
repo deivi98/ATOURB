@@ -107,7 +107,12 @@ if(typeof module !== 'undefined' && !module.parent) {
     const ip: string = process.argv[3];
     const port: number = parseInt(process.argv[4]);
     const n: number = parseInt(process.argv[5]);
-    const f: number = n / 2 - 1;
+    var f: number;
+    if(n % 2 == 0) {
+        f = Math.floor((n - 1) / 2);
+    } else {
+        f = Math.floor(n / 2);
+    }
 
     // Creamos e iniciamos el cliente
     const client = new Client(id, ip, port, n, f);
@@ -115,6 +120,7 @@ if(typeof module !== 'undefined' && !module.parent) {
     client.init()
     .then(() => {
 
+        console.log("N = " + n + ", F = " + f);
         console.log("Introduzca connect:<id>:<ip>:<port> para conectarse a otro cliente.");
         console.log("Para enviar un mensaje escriba libremente");
         console.log("---------------------------------------------------------------");
