@@ -42,6 +42,7 @@ if(N % 2 == 0) {
 } else {
     F = Math.floor(N / 2);
 }
+var rd: readline.Interface;
 
 // Eliminamos la carpeta test si existe y la volvemos a crear
 if(fs.existsSync("test/")) {
@@ -169,7 +170,7 @@ startLocalClients()
     console.log("N = " + N + ", F = " + F);
     console.log("Todos los clientes han sido iniciados y conectados correctamente");
 
-    const rd = readline.createInterface({
+    rd = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
@@ -189,8 +190,6 @@ startLocalClients()
             // Inicia el envio continuo de mensajes aleatorios
             messageInterval = setInterval(randomMessage, delayMessageMillis);
         }
-        
-        rd.close();
     });
     
     // if(readlineSync.keyInYN('Quieres enviar mensaje manualmente? (Si no, estos se enviaran aleatoriamente cada ' + delayMessageMillis + 'ms)')) {
@@ -213,12 +212,9 @@ startLocalClients()
 });
 
 function listenKeyboardMessages(): void {
-
     // Escuchamos la entrada para enviar mensajes
-    const stdin = process.openStdin();
-    stdin.addListener("data", function(d) {
-        const cmd: string = d.toString().trim();
-
+    // const stdin = process.openStdin();
+    rd.on('line', function(cmd: string) {
         const args = cmd.split(":");
         
         if(args.length > 1) {
@@ -245,6 +241,7 @@ function closeClients(): void {
     for(var i: 0; i < localClients.length; i++) {
         localClients[i].close();
     }
+    rd.close();
     clearInterval(messageInterval);
     console.log("Cerrando conexiones y clientes...");
     setTimeout(function() {
