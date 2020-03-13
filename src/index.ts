@@ -250,7 +250,7 @@ function closeClients(): void {
     console.log("Cerrando conexiones y clientes...");
     setTimeout(function() {
         process.exit();
-    }, 2000);
+    }, 5000);
 }
 
 // Escucha la señal CTRL + C y cierra el programa correctamente
