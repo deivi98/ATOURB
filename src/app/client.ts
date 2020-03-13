@@ -21,7 +21,7 @@ export default class Client extends EventEmitter {
     constructor(id: string, ip: string, port: number, n: number, f: number) {
         super();
         this._id = id;
-        this._process = new Process("p-" + id, ip, port, n, f);
+        this._process = new Process(id, ip, port, n, f);
     }
     
     /**
