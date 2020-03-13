@@ -77,7 +77,7 @@ export default class URBTO {
             this._recieved[event.id] = event.copy();
             this._recieved[event.id].nor++;
 
-            console.log("First time received!");
+            console.log("First time received! From: " + senderId);
 
             this._peers.forEach((peer: Connection) => {
                 if(peer.id != senderId) {
