@@ -83,7 +83,9 @@ export default class URBTO {
                 // if(peer.id != senderId) {
                     if(!peer.closed) {
                         // console.log("To: " + peer.id);
-                        peer.dealer.send(event.serialize());
+                        peer.dealer.send(event.serialize()).catch((err: any) => {
+                            console.log(err);
+                        });
                     }
                 // }
             });
