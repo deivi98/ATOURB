@@ -80,12 +80,12 @@ export default class URBTO {
             console.log("First time received! From: " + senderId);
 
             this._peers.forEach((peer: Connection) => {
-                if(peer.id != senderId) {
+                // if(peer.id != senderId) {
                     if(!peer.closed) {
                         console.log("To: " + peer.id);
                         peer.dealer.send(event.serialize());
                     }
-                }
+                // }
             });
         }
         // Update clock
