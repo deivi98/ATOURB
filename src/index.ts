@@ -183,13 +183,13 @@ startLocalClients()
             console.log("Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
 
             manual = true;
-            listenKeyboardMessages();
         } else {
 
             console.log("Envio aleatorio continuo de mensajes aleatorios iniciado");
             // Inicia el envio continuo de mensajes aleatorios
             messageInterval = setInterval(randomMessage, delayMessageMillis);
         }
+        listenKeyboardMessages();
     });
     
     // if(readlineSync.keyInYN('Quieres enviar mensaje manualmente? (Si no, estos se enviaran aleatoriamente cada ' + delayMessageMillis + 'ms)')) {
@@ -217,7 +217,7 @@ function listenKeyboardMessages(): void {
     rd.on('line', function(cmd: string) {
         const args = cmd.split(":");
         
-        if(args.length > 1) {
+        if(args.length > 1 && manual == true) {
 
             const localClient: Client = localClients[parseInt(args[0]) - 1];
 
@@ -228,6 +228,10 @@ function listenKeyboardMessages(): void {
 
             localClient.urbtoBroadcast(new Message(args[1]));
         } else {
+            if(cmd.toLowerCase() == "exit") {
+                closeClients();
+                return;
+            }
             console.log("ERROR: Formato invalido. Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
         }
     });
