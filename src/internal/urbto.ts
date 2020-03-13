@@ -87,6 +87,8 @@ export default class URBTO {
                     }
                 // }
             });
+        } else {
+            console.log("Mensaje descartado: " + event.msg);
         }
         // Update clock
     }
