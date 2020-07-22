@@ -16,6 +16,7 @@ export default class URBTO {
     private _peers: Connection[];                                       // Conjunto de conexiones correctas
     private _recieved: { [id: string]: Event; };                        // Conjunto de eventos recibidos
     private _lastDeliveredProcessEvents: { [id: string]: Event; };      // Conjunto de ultimos eventos entregados a la aplicacion por proceso
+    private _lastDisorderDeliveredProcessEvents: { [id: string]: Event; };      // Conjunto de ultimos eventos entregados en desorden a la aplicacion por proceso
     private _lastDeliveredTs: number;                                   // Tiempo del último evento entregado   
 
     // Variables adicionales
@@ -29,6 +30,7 @@ export default class URBTO {
         this._process = process;
         this._recieved = {};
         this._lastDeliveredProcessEvents = {};
+        this._lastDisorderDeliveredProcessEvents = {};
         this._lastDeliveredTs = 0;
         this._peers = [];
         this._n = n;
@@ -54,9 +56,11 @@ export default class URBTO {
     }
 
     private isLastDeliveredOfAnyProcess(event: Event): boolean {
-        return Object.values(this._lastDeliveredProcessEvents).find((e: Event) => {
+        return ((Object.values(this._lastDeliveredProcessEvents).find((e: Event) => {
             return e.id == event.id;
-        }) !== undefined;
+        }) !== undefined) || (Object.values(this._lastDisorderDeliveredProcessEvents).find((e: Event) => {
+            return e.id == event.id;
+        }) !== undefined));
     }
 
     /**
@@ -89,7 +93,8 @@ export default class URBTO {
                     }
                 // }
             });
-        }
+
+       }
         // Update clock
     }
 
@@ -122,6 +127,7 @@ export default class URBTO {
 
             if(event.ts < this._lastDeliveredTs) {
                 delete this._recieved[event.id];
+                this._lastDisorderDeliveredProcessEvents[event.sourceId] = event;
                 this._process.emit('message-disorder', event);
             } else if(this.isDeliverable(event)) {
                 deliverableEvents.push(event);
