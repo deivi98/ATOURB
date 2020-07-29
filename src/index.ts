@@ -7,7 +7,7 @@ import * as rimraf from 'rimraf';
 import * as sprintfjs from 'sprintf-js';
 
 /**
- * Programa de testeo de EpTO con numero de nodos indefinido
+ * Programa de testeo de URBTO con numero de nodos indefinido
  */
 
 const delayMessageMillis: number = 500;      // Tiempo en milisegundos entre envio de mensajes aleatorios
