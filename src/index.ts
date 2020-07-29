@@ -15,7 +15,7 @@ var localClients: Client[] = [];            // Array de clientes
 var messageInterval: NodeJS.Timeout;        // Interval de NodeJS para el envio de mensajes continuado
 var nextMessage: number = 0;                // Siguiente id autoincremental de mensaje
 var manual: boolean = false;
-var logicalTime: boolean = false;
+var logicalTime: boolean = true;
 
 if(!fs.existsSync("network.json")) {
     console.log("La configuracion de red (network.json) no existe!");

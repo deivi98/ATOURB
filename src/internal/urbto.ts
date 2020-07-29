@@ -23,6 +23,7 @@ export default class URBTO {
     // Variables adicionales
     private _process: Process;                                          // Proceso al que pertenece
     private _logical: boolean;                                          // Si el reloj es logico
+    private _logicalClock: LogicalClock;                                // Reloj logico
 
     /**
      * Constructor del componente
@@ -38,6 +39,7 @@ export default class URBTO {
         this._n = n;
         this._f = f;
         this._logical = logical;
+        this._logicalClock = new LogicalClock();
     }
 
     /**
@@ -53,7 +55,7 @@ export default class URBTO {
      */
     public urbtoBroadcast(event: Event): void {
         if(this._logical) {
-            event.ts = LogicalClock.getTime();
+            event.ts = this._logicalClock.getTime();
         } else {
             event.ts = Clock.getTime();
         }
@@ -105,7 +107,7 @@ export default class URBTO {
        
         // Update clock
         if(this._logical) {
-            LogicalClock.updateClock(event.ts);
+            this._logicalClock.updateClock(event.ts);
         }
     }
 

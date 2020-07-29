@@ -14,24 +14,32 @@ export default class Clock {
 
 }
 
+/**
+ * Clase LogicalClock
+ * Simple clase para obtener el tiempo logico actual
+ */
 export class LogicalClock {
     
-    static logicalTime: number = 0;
+    private _logicalTime: number;
+
+    constructor() {
+        this._logicalTime = 0;
+    }
 
     /**
      * Devuelve el tiempo ahora
      */
-    public static getTime(): number {
-        return this.logicalTime;
+    public getTime(): number {
+        return this._logicalTime++;
     }
     
     /**
-     * Devuelve el tiempo ahora
+     * Actualiza el tiempo logico
      */
-    public static updateClock(time: number) {
+    public updateClock(time: number) {
 
-        if(time > this.logicalTime) {
-            this.logicalTime = time;
+        if(time > this._logicalTime) {
+            this._logicalTime = time;
         }
     }
 
