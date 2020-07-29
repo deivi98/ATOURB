@@ -26,13 +26,13 @@ export default class Process extends EventEmitter {
      * @param ip ip del proceso
      * @param port puerto del proceso
      */
-    constructor(id: string, ip: string, port: number, n: number, f: number) {
+    constructor(id: string, ip: string, port: number, n: number, f: number, logical: boolean) {
         super();
         this._id = id;
         this._ip = ip;
         this._port = port;
         this._router = new Router();
-        this._urbto = new URBTO(this, n, f);
+        this._urbto = new URBTO(this, n, f, logical);
     }
 
     /**

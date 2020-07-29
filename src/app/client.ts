@@ -18,10 +18,10 @@ export default class Client extends EventEmitter {
      * @param ip ip del cliente
      * @param port puerto de escucha
      */
-    constructor(id: string, ip: string, port: number, n: number, f: number) {
+    constructor(id: string, ip: string, port: number, n: number, f: number, logical: boolean) {
         super();
         this._id = id;
-        this._process = new Process(id, ip, port, n, f);
+        this._process = new Process(id, ip, port, n, f, logical);
     }
     
     /**
@@ -115,7 +115,7 @@ if(typeof module !== 'undefined' && !module.parent) {
     }
 
     // Creamos e iniciamos el cliente
-    const client = new Client(id, ip, port, n, f);
+    const client = new Client(id, ip, port, n, f, false);
 
     client.init()
     .then(() => {

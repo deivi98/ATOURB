@@ -1,6 +1,7 @@
 import Process from './process';
 import Event from './event';
 import Clock from './clock';
+import { LogicalClock } from './clock';
 import Connection from './connection';
 
 /**
@@ -21,12 +22,13 @@ export default class URBTO {
 
     // Variables adicionales
     private _process: Process;                                          // Proceso al que pertenece
+    private _logical: boolean;                                          // Si el reloj es logico
 
     /**
      * Constructor del componente
      * @param process proceso al que pertenece
      */
-    constructor(process: Process, n: number, f: number) {
+    constructor(process: Process, n: number, f: number, logical: boolean) {
         this._process = process;
         this._recieved = {};
         this._lastDeliveredProcessEvents = {};
@@ -35,6 +37,7 @@ export default class URBTO {
         this._peers = [];
         this._n = n;
         this._f = f;
+        this._logical = logical;
     }
 
     /**
@@ -49,7 +52,11 @@ export default class URBTO {
      * @param event evento a enviar
      */
     public urbtoBroadcast(event: Event): void {
-        event.ts = Clock.getTime();
+        if(this._logical) {
+            event.ts = LogicalClock.getTime();
+        } else {
+            event.ts = Clock.getTime();
+        }
         event.nor = 0;
         event.sourceId = this._process.id;
         this.recieveHandler(event, this._process.id);
@@ -94,8 +101,12 @@ export default class URBTO {
                 // }
             });
 
-       }
+        }
+       
         // Update clock
+        if(this._logical) {
+            LogicalClock.updateClock(event.ts);
+        }
     }
 
     /**
