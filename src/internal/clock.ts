@@ -39,7 +39,7 @@ export class LogicalClock {
     public updateClock(time: number) {
 
         if(time > this._logicalTime) {
-            this._logicalTime = time;
+            this._logicalTime = time + 1;
         }
     }
 

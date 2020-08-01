@@ -10,7 +10,7 @@ import * as sprintfjs from 'sprintf-js';
  * Programa de testeo de URBTO con numero de nodos indefinido
  */
 
-const delayMessageMillis: number = 500;      // Tiempo en milisegundos entre envio de mensajes aleatorios
+const delayMessageMillis: number = 200;      // Tiempo en milisegundos entre envio de mensajes aleatorios
 var localClients: Client[] = [];            // Array de clientes
 var messageInterval: NodeJS.Timeout;        // Interval de NodeJS para el envio de mensajes continuado
 var nextMessage: number = 0;                // Siguiente id autoincremental de mensaje
