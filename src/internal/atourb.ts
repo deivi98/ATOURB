@@ -141,7 +141,7 @@ export default class ATOURB {
             if(event.ts < this._lastDeliveredTs) {
                 delete this._recieved[event.id];
                 this._lastDisorderDeliveredProcessEvents[event.sourceId] = event;
-                this._process.emit('message-disorder', event);
+                this._process.emit('u-deliver', event);
             } else if(this.isDeliverable(event)) {
                 deliverableEvents.push(event);
             } else if(event.ts < minTsOfNonDeliverable) {
@@ -167,7 +167,7 @@ export default class ATOURB {
         }).forEach((event: Event) => {
             this._lastDeliveredProcessEvents[event.sourceId] = event;
             this._lastDeliveredTs = event.ts;
-            this._process.emit('message', event);
+            this._process.emit('to-deliver', event);
         });
     }
 

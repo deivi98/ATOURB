@@ -51,13 +51,13 @@ export default class Client extends EventEmitter {
     public async init(): Promise<void> {
 
         // When the process receives an event, the client sends it to the application layer
-        this._process.on('message', (event: Event) => {
-            this.emit('message', event);
+        this._process.on('to-deliver', (event: Event) => {
+            this.emit('to-deliver', event);
         });
 
         // When the process receives an event in disorder, the client sends it to the application layer
-        this._process.on('message-disorder', (event: Event) => {
-            this.emit('message-disorder', event);
+        this._process.on('u-deliver', (event: Event) => {
+            this.emit('u-deliver', event);
         });
 
         return await this._process.init();
@@ -125,7 +125,7 @@ if(typeof module !== 'undefined' && !module.parent) {
         console.log("---------------------------------------------------------------");
 
         // Once iniciated, we listen to the messages recieved and we print them
-        client.on('message', (event: Event) => {
+        client.on('to-deliver', (event: Event) => {
             console.log(event.sourceId + "(" + event.id +  ") > " + event.msg.data);
         });
 

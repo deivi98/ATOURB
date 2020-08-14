@@ -106,7 +106,7 @@ function listenMessages(client: Client) {
     var nextOutputMessage: number = 0;
 
     // Client listen to message and logs it sinchronously (to avoid disorder when logging)
-    client.on('message', (event: Event) => {
+    client.on('to-deliver', (event: Event) => {
 
         if(manual) {
             console.log("CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
@@ -118,7 +118,7 @@ function listenMessages(client: Client) {
     });
     
     // Client listen to message in disorder and logs it sinchronously (to avoid disorder when logging)
-    client.on('message-disorder', (event: Event) => {
+    client.on('u-deliver', (event: Event) => {
 
         if(manual) {
             console.log("[DISORDER] CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
