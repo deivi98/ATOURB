@@ -1,22 +1,22 @@
 /**
- * Clase Message
- * Lo que la aplicación desea enviar
- * y recibir en última instancia
+ * Message class
+ * Information the application wants to
+ * deliver lastly
  */
 export default class Message {
 
-    private _data: string;          // Mensaje o frase
+    private _data: string;          // Message data
 
     /**
-     * Constructor del mensaje
-     * @param data mensaje
+     * Message constructor
+     * @param data message
      */
     constructor(data: string) {
         this._data = data;
     }
 
     /**
-     * Devuelve los datos del mensaje
+     * Returns the message data
      */
     get data(): string {
         return this._data;
@@ -27,15 +27,15 @@ export default class Message {
     }
 
     /**
-     * Serializa el objeto mensaje
+     * Serializes the message
      */
     public serialize(): string {
         return JSON.stringify(this);
     }
 
     /**
-     * Deserializa un objeto para que vuelva a ser de tipo Message
-     * @param object objeto a deserializar
+     * Deserialize the message back into a Message object
+     * @param object resulting object
      */
     public static deserialize(object: Object): Message {
         const msg: Message = Object.assign(new Message(undefined), object);

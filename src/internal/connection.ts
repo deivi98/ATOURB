@@ -1,20 +1,20 @@
 import { Dealer } from "zeromq";
 
 /**
- * Clase Connection
- * Almacena informacion sobre la conexion
- * a otros clientes
+ * Connection class
+ * Saves the information to
+ * connect to other clients
  */
 export default class Connection {
 
-    private _id: string;          // ID del proceso o cliente de la conexion
-    private _dealer: Dealer;      // Dealer de la conexion
+    private _id: string;          // Connection process ID
+    private _dealer: Dealer;      // Connection dealer
     private _closed: boolean = false;
 
     /**
-     * Constructor de la conexion
-     * @param id id del cliente
-     * @param dealer dealer del cliente
+     * Connection constructor
+     * @param id client ID
+     * @param dealer dealer
      */
     constructor(id: string, dealer: Dealer) {
         this._id = id;
@@ -22,26 +22,29 @@ export default class Connection {
     }
 
     /**
-     * Devuelve el id del cliente de la conexion
+     * Returns the client ID
      */
     get id(): string {
         return this._id;
     }
 
     /**
-     * Devuelve si el socket esta cerrado
+     * Returns wether the connection is closed or not
      */
     get closed(): boolean {
         return this._closed;
     }
 
     /**
-     * Devuelve el dealer de la conexion
+     * Returns the connection dealer
      */
     get dealer(): Dealer {
         return this._dealer;
     }
 
+    /**
+     * Closes the connection safely
+     */
     public close(): void {
         this._closed = true;
         this._dealer.close();

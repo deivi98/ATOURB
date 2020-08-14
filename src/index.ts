@@ -7,18 +7,18 @@ import * as rimraf from 'rimraf';
 import * as sprintfjs from 'sprintf-js';
 
 /**
- * Programa de testeo de URBTO con numero de nodos indefinido
+ * Undefined number of nodes testing program of the algorithm
  */
 
-const delayMessageMillis: number = 200;      // Tiempo en milisegundos entre envio de mensajes aleatorios
-var localClients: Client[] = [];            // Array de clientes
-var messageInterval: NodeJS.Timeout;        // Interval de NodeJS para el envio de mensajes continuado
-var nextMessage: number = 0;                // Siguiente id autoincremental de mensaje
-var manual: boolean = false;
-var logicalTime: boolean = true;
+const delayMessageMillis: number = 200;     // Delay between secuential random message sending
+var localClients: Client[] = [];            // Clients array
+var messageInterval: NodeJS.Timeout;        // NodeJS interval to repeat random message sending
+var nextMessage: number = 0;                // Message generation autoincremental identifier
+var manual: boolean = false;                // Wether the message sending is manual or not
+var logicalTime: boolean = true;            // Wether the clock being used is logical or not
 
 if(!fs.existsSync("network.json")) {
-    console.log("La configuracion de red (network.json) no existe!");
+    console.log("The network configuration (network.json) does not exist!");
     process.exit(-1);
 }
 
@@ -44,14 +44,14 @@ if(N % 2 == 0) {
 }
 var rd: readline.Interface;
 
-// Eliminamos la carpeta test si existe y la volvemos a crear
+// Delete test result folder if exists and create it again to store new results
 if(fs.existsSync("test/")) {
     rimraf.sync("test/");
 }
 fs.mkdirSync("test/");
 
 /**
- * Funcion que crea e inicializa los clientes locales
+ * Function to create and initialize network clients
  */
 async function startLocalClients(): Promise<void[]> {
 
@@ -60,7 +60,7 @@ async function startLocalClients(): Promise<void[]> {
     const localNetwork = networkConfig["127.0.0.1"];
 
     if(!localNetwork) {
-        console.log("Configuracion de red invalida. Ningun cliente local se ha configurado");
+        console.log("Invalid configuration. No client was successfully configured.");
         process.exit(-1);
     }
 
@@ -71,7 +71,7 @@ async function startLocalClients(): Promise<void[]> {
     for(var i = 1; i <= n; i++) {
         var client: Client = new Client('n-' + nodeName + '-client' + i, '0.0.0.0', initialPort + i, N, F, logicalTime);
         clientPromises.push(client.init());
-        console.log("Preparado cliente " + client.id);
+        console.log("Client " + client.id + " ready.");
         localClients.push(client);
     }
 
@@ -79,25 +79,24 @@ async function startLocalClients(): Promise<void[]> {
 }
 
 /**
- * Funcion que selecciona un cliente aleatorio
- * del array y envia un mensaje
+ * Function that selects randomly a client and
+ * send a message through it
  */
 function randomMessage() {
 
     var clientPos: number = Math.floor(Math.random() * localClients.length);
     var randomClient: Client = localClients[clientPos];
     
-    randomClient.urbtoBroadcast(new Message("Mensaje automatico " + (++nextMessage)));
+    randomClient.broadcast(new Message("Automated message " + (++nextMessage)));
 }
 
 /**
- * Funcion de escucha y logueo de los mensajes
- * recibidos por un cliente
- * @param client cliente
+ * Listen to client messages and saves them to the logs
+ * @param client client
  */
 function listenMessages(client: Client) {
 
-    // Borramos el archivo log si existe un antiguo
+    // Deletes old log if exists
     if(fs.existsSync("test/" + client.id + ".log")) {
         fs.unlinkSync('test/' + client.id + '.log');
     }
@@ -106,7 +105,7 @@ function listenMessages(client: Client) {
     
     var nextOutputMessage: number = 0;
 
-    // Cliente escucha un mensaje y lo loguea sincronamente en el log (Para evitar desorden al loguear)
+    // Client listen to message and logs it sinchronously (to avoid disorder when logging)
     client.on('message', (event: Event) => {
 
         if(manual) {
@@ -118,7 +117,7 @@ function listenMessages(client: Client) {
         }
     });
     
-    // Cliente escucha un mensaje en desorden y lo loguea sincronamente en el log (Para evitar desorden al loguear)
+    // Client listen to message in disorder and logs it sinchronously (to avoid disorder when logging)
     client.on('message-disorder', (event: Event) => {
 
         if(manual) {
@@ -132,14 +131,14 @@ function listenMessages(client: Client) {
 }
 
 /**
- * Espera a que inicien los clientes
- * para iniciar su escucha y conectarlos
- * cada uno al resto de clientes
+ * Waits for clients to initiate and start
+ * to listen and connect them each one to the
+ * rest of the clients
  */
 startLocalClients()
 .then(() => {
 
-    // Conectamos cada cliente local con el resto de los locales
+    // Connects each local client to the rest of local clients (that belong to this program)
     localClients.forEach((a: Client) => {
         listenMessages(a);
 
@@ -150,7 +149,7 @@ startLocalClients()
         });
     });
 
-    // Conectamos cada cliente local con el resto de clientes de todos los nodos remotos 
+    // Connects each local client to the rest of the remote clients from other remote programs (following the network configuration)
     Object.keys(networkConfig).forEach(function(key) {
         if(key != "127.0.0.1") {
             const remoteNodeNetwork = networkConfig[key];
@@ -168,25 +167,25 @@ startLocalClients()
 
     console.log("----------------------------------------------------------------");
     console.log("N = " + N + ", F = " + F);
-    console.log("Todos los clientes han sido iniciados y conectados correctamente");
+    console.log("All clients sucessfully initialized and connected.");
 
     rd = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
 
-    rd.question('Quieres enviar mensajes manualmente? (Si no, estos se enviaran aleatoriamente cada ' + delayMessageMillis + 'ms) [s/n]: ', response => {
+    rd.question('Do you want to send messages manually? (If not, messages will be sent randomly each ' + delayMessageMillis + 'ms) [y/n]: ', response => {
         
-        if(response.toLowerCase().startsWith("s")) {
+        if(response.toLowerCase().startsWith("y")) {
 
             console.log("----------------------------------------------------------------");
-            console.log("Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
+            console.log("To send a message type <client_id>:<message> and press enter");
 
             manual = true;
         } else {
 
-            console.log("Envio aleatorio continuo de mensajes aleatorios iniciado");
-            // Inicia el envio continuo de mensajes aleatorios
+            console.log("Continuous random message sending initiated");
+            // Initiates random message sending
             messageInterval = setInterval(randomMessage, delayMessageMillis);
         }
         listenKeyboardMessages();
@@ -206,14 +205,13 @@ startLocalClients()
 
 })
 .catch((error: any) => {
-    console.log("Error al iniciar los clientes:");
+    console.log("Error while initiating client:");
     console.log(error);
     process.exit();
 });
 
 function listenKeyboardMessages(): void {
-    // Escuchamos la entrada para enviar mensajes
-    // const stdin = process.openStdin();
+    // Listen keyboard to send messages
     rd.on('line', function(cmd: string) {
         const args = cmd.split(":");
         
@@ -222,24 +220,24 @@ function listenKeyboardMessages(): void {
             const localClient: Client = localClients[parseInt(args[0]) - 1];
 
             if(!localClient) {
-                console.log("No existe el cliente local " + args[0] + "!");
+                console.log("Local client with id " + args[0] + " does not exist!");
                 return;
             }
 
-            localClient.urbtoBroadcast(new Message(args[1]));
+            localClient.broadcast(new Message(args[1]));
         } else {
             if(cmd.toLowerCase() == "exit") {
                 closeClients();
                 return;
             }
-            console.log("ERROR: Formato invalido. Para enviar mensajes escribe <id_cliente>:<mensaje> y pulsa intro");
+            console.log("ERROR: Invalid format. To send a message type <client_id>:<message> and press enter");
         }
     });
 }
 
 /**
- * Cierra los clientes y sus conexiones correctamente
- * antes de terminar el programa
+ * Closes the clients and their connections safely
+ * before terminating the program
  */
 function closeClients(): void {
     for(var i: 0; i < localClients.length; i++) {
@@ -247,11 +245,10 @@ function closeClients(): void {
     }
     rd.close();
     clearInterval(messageInterval);
-    console.log("Cerrando conexiones y clientes...");
+    console.log("Closing clients and connections...");
     setTimeout(function() {
         process.exit();
     }, 5000);
 }
 
-// Escucha la señal CTRL + C y cierra el programa correctamente
 process.on('SIGINT', closeClients);

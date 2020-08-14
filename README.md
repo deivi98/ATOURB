@@ -1,40 +1,40 @@
-# URBTOA: Uniform Reliable Broadcast Total Order Approximation
+# aTO-URB: Approximated Total Order Uniform Reliable Broadcast
 
     Implementación simple del algoritmo en NodeJS.
 
-## Estructura del proyecto:
+## Project Structure
 ```
 .
-├── LICENSE                                 // Licencia del proyecto
-├── README.md                               // Este archivo
-├── docs                                    // Documentos de implementación
-├── package-lock.json                       // Dependencias del proyecto
-├── package.json                            // Propiedades del proyecto
-└── src                                     // Código
-    ├── app                                     // Código de la aplicación de prueba
-    │   ├── client.ts                               // Simulación de cliente de aplicación
-    │   └── message.ts                              // Mensaje de la aplicación
-    ├── index.ts                            // Programa principal de testeo
-    └── internal                            // Código interno de la librería
+├── LICENSE                                 
+├── README.md                               
+├── docs                                    // Useful documentation
+├── package-lock.json                       // NPM Project dependencies
+├── package.json                            // NPM Project properties
+└── src                                     // Code
+    ├── app                                     // Application layer example code
+    │   ├── client.ts                               // Client simulation
+    │   └── message.ts                              // Application message
+    ├── index.ts                            // Test main program
+    └── internal                            // Algorithm code
         ├── connection.ts                         
         ├── clock.ts
         ├── event.ts
         ├── process.ts
-        └── urbto.ts
+        └── atourb.ts
 ```
 
-## Requerimientos previos
+## Previous requirements
 
-1. Tener npm y node instalado
-2. Tener ts-node instalado
-3. Tener typescript instalado
+1. Have npm y node installed
+2. Have ts-node installed
+3. Have typescript installed
 
-## Pasos para desplegar 
+## Steps to deploy
 
-1. Ejecutar `npm i`
-2. Para ejecutar un cliente `ts-node src/app/client.ts <id> <ip> <port>`
-3. Para ejecutar la prueba programada `npm start`
+1. Run `npm i`
+2. Run `ts-node src/app/client.ts <id> <ip> <port>` to start a client manually
+3. Run `npm start` to use the test program
 
-## Autores
+## Authors
 
 * **David González** - [deivi98](https://github.com/deivi98)

@@ -4,19 +4,19 @@ import Event from '../internal/event';
 import { EventEmitter } from 'events';
 
 /**
- * Clase Client
- * Simula el cliente de una aplicación
+ * Client class
+ * Simulates an application client
  */
 export default class Client extends EventEmitter {
 
-    private _id: string;            // ID único del cliente
-    private _process: Process;      // Proceso responsable del cliente
+    private _id: string;            // Unique ID of client
+    private _process: Process;      // Associated process to this client
 
     /**
      * Constructor
-     * @param id id del cliente
-     * @param ip ip del cliente
-     * @param port puerto de escucha
+     * @param id client id
+     * @param ip client ip
+     * @param port client port
      */
     constructor(id: string, ip: string, port: number, n: number, f: number, logical: boolean) {
         super();
@@ -25,37 +25,37 @@ export default class Client extends EventEmitter {
     }
     
     /**
-     * Devuelve el id del cliente
+     * Returns ID of client
      */
     get id(): string {
         return this._id;
     }
 
     /**
-     * Devuelve la ip del cliente
+     * Returns IP of client
      */
     get ip(): string {
         return this._process.ip;
     }
 
     /**
-     * Devuelve el puerto del cliente
+     * Returns port of client
      */
     get port(): number {
         return this._process.port;
     }
 
     /**
-     * Inicia el cliente, e inicia la escucha de eventos
+     * Initiates the client, and listen for messages from process
      */
     public async init(): Promise<void> {
 
-        // Cuando el proceso recibe un evento, el cliente lo retransmite a la aplicación
+        // When the process receives an event, the client sends it to the application layer
         this._process.on('message', (event: Event) => {
             this.emit('message', event);
         });
 
-        // Cuando el proceso recibe un evento en desorden, el cliente lo retransmite a la aplicación
+        // When the process receives an event in disorder, the client sends it to the application layer
         this._process.on('message-disorder', (event: Event) => {
             this.emit('message-disorder', event);
         });
@@ -64,45 +64,44 @@ export default class Client extends EventEmitter {
     }
 
     /**
-     * Conecta el cliente con otro cliente
-     * @param ip ip de otro cliente
-     * @param port puerto de otro cliente
+     * Connects the client to other clients
+     * @param ip other client IP
+     * @param port other client port
      */
     public connect(id: string, ip: string, port: number): void {
         this._process.connect(id, ip, port);
 
-        console.log("Cliente " + this._id + " conectado a " + id + " (" + ip + ":" + port + ")");
+        console.log("Client " + this._id + " connected to " + id + " (" + ip + ":" + port + ")");
     }
 
     /**
-     * Cierra el cliente y sus conexiones correctamente
+     * Closes the client and its connections correctly
      */
     public close(): void {
         this._process.close();
     }
 
     /**
-     * Envia un mensaje siguiendo el protocolo EpTo
-     * @param msg Mensaje a enviar
+     * Broadcasts a message (sends it to process)
+     * @param msg message to send
      */
-    public urbtoBroadcast(msg: Message): void {
-        this._process.urbtoBroadcast(msg);
+    public broadcast(msg: Message): void {
+        this._process.broadcast(msg);
     }
 }
 
 /**
- * Programa principal genérico para la ejecución
- * de un cliente individual de forma local
+ * Main generic program to execute a client locally
  */
 if(typeof module !== 'undefined' && !module.parent) {
 
-    // Se asegura de recibir todos los parametros
+    // Check all parameters
     if(process.argv.length != 6) {
         console.log("Use: ts-node client.ts <id> <ip> <port> <total of nodes>");
         process.exit();
     }
 
-    // Obtiene los parametros
+    // Obtain parameters
     const id: string = process.argv[2];
     const ip: string = process.argv[3];
     const port: number = parseInt(process.argv[4]);
@@ -114,23 +113,23 @@ if(typeof module !== 'undefined' && !module.parent) {
         f = Math.floor(n / 2);
     }
 
-    // Creamos e iniciamos el cliente
+    // Creates and initializes the client
     const client = new Client(id, ip, port, n, f, false);
 
     client.init()
     .then(() => {
 
         console.log("N = " + n + ", F = " + f);
-        console.log("Introduzca connect:<id>:<ip>:<port> para conectarse a otro cliente.");
-        console.log("Para enviar un mensaje escriba libremente");
+        console.log("Type connect:<id>:<ip>:<port> to connect to other client.");
+        console.log("To send a message just type normally");
         console.log("---------------------------------------------------------------");
 
-        // Una vez iniciado, escuchamos e imprimimos eventos recibidos en cuanto lleguen
+        // Once iniciated, we listen to the messages recieved and we print them
         client.on('message', (event: Event) => {
             console.log(event.sourceId + "(" + event.id +  ") > " + event.msg.data);
         });
 
-        // Escuchamos la entrada para conectarnos a más clientes o enviar mensajes
+        // We also listen the keyboard to send messages and connect to other clients
         const stdin = process.openStdin();
         stdin.addListener("data", function(d) {
             const cmd: string = d.toString().trim();
@@ -140,18 +139,18 @@ if(typeof module !== 'undefined' && !module.parent) {
             if(args.length == 4 && args[0] == "connect") {
                 client.connect(args[1], args[2], parseInt(args[3]));
             } else {
-                client.urbtoBroadcast(new Message(cmd));
+                client.broadcast(new Message(cmd));
             }
         });
 
     })
     .catch((error: any) => {
-        console.log("Error al iniciar cliente " + id);
+        console.log("Error initiating the client " + id);
         console.log(error);
         process.exit();
     });
     
-    // Escucha la señal CTRL + C y cierra el programa correctamente
+    // Listen the signal CTRL + C and terminates the program correctly
     process.on('SIGINT', function() {
         client.close();
         process.exit();

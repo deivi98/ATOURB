@@ -5,29 +5,29 @@ import { LogicalClock } from './clock';
 import Connection from './connection';
 
 /**
- * Clase URBTO
- * Componente que se encarga de la disusión y ordenación de los
- * eventos a traves de la red entre procesos
+ * ATOURB algorithm class
+ * Main algorithm of this program. It manages
+ * message dissemination and ordering
  */
-export default class URBTO {
+export default class ATOURB {
     
-    // Variables algoritmo URBTO
-    private _n: number;                                                 // Numero de nodos totales del a red
-    private _f: number;                                                 // Numero posible de fallos
-    private _peers: Connection[];                                       // Conjunto de conexiones correctas
-    private _recieved: { [id: string]: Event; };                        // Conjunto de eventos recibidos
-    private _lastDeliveredProcessEvents: { [id: string]: Event; };      // Conjunto de ultimos eventos entregados a la aplicacion por proceso
-    private _lastDisorderDeliveredProcessEvents: { [id: string]: Event; };      // Conjunto de ultimos eventos entregados en desorden a la aplicacion por proceso
-    private _lastDeliveredTs: number;                                   // Tiempo del último evento entregado   
+    // Algorithm variables
+    private _n: number;                                                 // Total nodes in the network
+    private _f: number;                                                 // Maximum non-correct processes
+    private _peers: Connection[];                                       // Process conecction peers set
+    private _recieved: { [id: string]: Event; };                        // Map of received events
+    private _lastDeliveredProcessEvents: { [id: string]: Event; };      // Map of last delivered events per process origin
+    private _lastDisorderDeliveredProcessEvents: { [id: string]: Event; };      // Mast of last disorder delivered events per process origin
+    private _lastDeliveredTs: number;                                   // Timestamp of the last delivered process
 
-    // Variables adicionales
-    private _process: Process;                                          // Proceso al que pertenece
-    private _logical: boolean;                                          // Si el reloj es logico
-    private _logicalClock: LogicalClock;                                // Reloj logico
+    // Additional variables
+    private _process: Process;                                          // Associated process
+    private _logical: boolean;                                          // Wether the clock is logical or not
+    private _logicalClock: LogicalClock;                                // Logical clock
 
     /**
-     * Constructor del componente
-     * @param process proceso al que pertenece
+     * Algorithm class constructor
+     * @param process program process
      */
     constructor(process: Process, n: number, f: number, logical: boolean) {
         this._process = process;
@@ -43,17 +43,17 @@ export default class URBTO {
     }
 
     /**
-     * Devuelve el conjunto de conexiones correctas a otros procesos
+     * Returns the set of connections to other clients
      */
     get peers(): Connection[] {
         return this._peers;
     }
 
     /**
-     * Prepara el envio del evento
-     * @param event evento a enviar
+     * Prepares the event and sends it
+     * @param event event to send
      */
-    public urbtoBroadcast(event: Event): void {
+    public broadcast(event: Event): void {
         if(this._logical) {
             event.ts = this._logicalClock.getTime();
         } else {
@@ -61,9 +61,14 @@ export default class URBTO {
         }
         event.nor = 0;
         event.sourceId = this._process.id;
-        this.recieveHandler(event, this._process.id);
+        this.receiveHandler(event);
     }
 
+    /**
+     * Checks if the event is one of the last delivered
+     * of any of the processes
+     * @param event event to check
+     */
     private isLastDeliveredOfAnyProcess(event: Event): boolean {
         return ((Object.values(this._lastDeliveredProcessEvents).find((e: Event) => {
             return e.id == event.id;
@@ -73,46 +78,41 @@ export default class URBTO {
     }
 
     /**
-     * Recibe un evento y su origen
-     * @param event evento recibido
+     * Receive an event
+     * @param event received event
      */
-    public recieveHandler(event: Event, senderId: string): void {
+    public receiveHandler(event: Event): void {
 
         if(this._recieved[event.id]) {
 
             this._recieved[event.id].nor++;
-            // console.log("Recieved " + this._recieved[event.id].nor + " times");
 
             if(this.isDeliverable(this._recieved[event.id])) {
                 this.orderAndDeliverEvents();
             }
         } else if(!this.isLastDeliveredOfAnyProcess(event)) {
+
             this._recieved[event.id] = event.copy();
             this._recieved[event.id].nor++;
 
-            // console.log("First time received! From: " + senderId);
-
             this._peers.forEach((peer: Connection) => {
-                // if(peer.id != senderId) {
-                    if(!peer.closed) {
-                        // console.log("To: " + peer.id);
-                        peer.dealer.send(event.serialize()).catch((err: any) => {
-                            console.log(err);
-                        });
-                    }
-                // }
-            });
 
+                if(!peer.closed) {
+                    peer.dealer.send(event.serialize()).catch((err: any) => {
+                        console.log(err);
+                    });
+                }
+            });
         }
        
-        // Update clock
+        // Update logical clock
         if(this._logical) {
             this._logicalClock.updateClock(event.ts);
         }
     }
 
     /**
-     * Ordena los eventos y los entrega a la aplicación si es preciso
+     * Order the events and delivers them to the application if possible
      */
     public orderAndDeliverEvents(): void {
         var
@@ -149,20 +149,19 @@ export default class URBTO {
             }
         });
 
-        // Para cada evento inicialmente entregable
+        // For each event initially deliverable
         deliverableEvents.forEach((event: Event) => {
-            // Si su tiempo es posterior al tiempo del evento no entregable más antiguo,
-            // entonces este tampoco es entregable, si es anterior, entonces sí es realmente
-            // entregable.
+            // If its timestamp is later than the timestamp of the oldest non-deliverable event
+            // then neither this one is deliverable, if its previous, then it is deliverable.
             if(event.ts <= minTsOfNonDeliverable) {
                 realDeliverableEvents.push(event);
                 delete this._recieved[event.id];
             }
         });
 
-        // Para todos los eventos finalmente entregables,
-        // los ordenamos por tiempo y por id del proceso/cliente emisor
-        // y los entregamos a la aplicación.
+        // For all events finally deliverable,
+        // we order them by time and origin process id/client
+        // and we deliver it to the application.
         realDeliverableEvents.sort(function(e1: Event, e2: Event): number {
             return (e1.ts - e2.ts) || (e1.sourceId == e2.sourceId ? 0: (e1.sourceId < e2.sourceId ? -1: 1));
         }).forEach((event: Event) => {
@@ -173,10 +172,10 @@ export default class URBTO {
     }
 
     /**
-     * Devuelve si el evento es entregable a la aplicación,
-     * es decir, si ha dado el número de saltos suficientes
-     * como para poder afirmar con alta probabilidad que
-     * el resto de procesos correctos lo han recibido también.
+     * Returns wether the event is deliverable or not.
+     * In other words, if the event has jumped enough number
+     * of times to have been received by the rest of correct
+     * processes.
      * @param event evento a comprobar
      */
     private isDeliverable(event: Event): boolean {

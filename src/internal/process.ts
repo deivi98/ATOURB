@@ -2,29 +2,29 @@ import { Router, Dealer } from "zeromq";
 import { EventEmitter } from "events";
 import Message from "../app/message";
 import Event from "./event";
-import URBTO from "./urbto";
+import ATOURB from "./atourb";
 import Connection from "./connection";
 
 /**
- * Clase Process
- * Clase encargada de unificar la lógica
- * de todos los componentes, además de las conexiones
- * con otros procesos.
+ * Process class
+ * Class in charge of unifying the logic of
+ * all components, in addition of the connections
+ * to other processes.
  */
 export default class Process extends EventEmitter {
 
-    private _eventIdInc = 0;                                    // Variable para general secuencialmente los ids de los eventos
-    private _id: string;                                        // ID único del proceso
-    private _ip: string;                                        // IP del proceso
-    private _port: number;                                      // Puerto de escucha del proceso
-    private _router: Router;                                    // Router de escucha del proceso
-    private _urbto: URBTO;                                      // Componente URBTO
+    private _eventIdInc = 0;                                    // Auto incremental process id variable generator
+    private _id: string;                                        // Unique process ID
+    private _ip: string;                                        // Process IP
+    private _port: number;                                      // Process port
+    private _router: Router;                                    // Process router to listen
+    private _atourb: ATOURB;                                    // ATOURB component
 
     /**
-     * Constructor del proceso
-     * @param id id único del proceso
-     * @param ip ip del proceso
-     * @param port puerto del proceso
+     * Process constructor
+     * @param id unique id of process
+     * @param ip ip of process
+     * @param port port of process
      */
     constructor(id: string, ip: string, port: number, n: number, f: number, logical: boolean) {
         super();
@@ -32,54 +32,54 @@ export default class Process extends EventEmitter {
         this._ip = ip;
         this._port = port;
         this._router = new Router();
-        this._urbto = new URBTO(this, n, f, logical);
+        this._atourb = new ATOURB(this, n, f, logical);
     }
 
     /**
-     * Devuelve el id del proceso
+     * Returns the process id
      */
     get id(): string {
         return this._id;
     }
 
     /**
-     * Devuelve la ip del proceso
+     * Returns the process IP
      */
     get ip(): string {
         return this._ip;
     }
 
     /**
-     * Devuelve el puerto del proceso
+     * Returns the process port
      */
     get port(): number {
         return this._port;
     }
 
     /**
-     * Devuelve el componente de ordenación del proceso
+     * Returns the program algorithm
      */
-    get urbto(): URBTO {
-        return this._urbto;
+    get atourb(): ATOURB {
+        return this._atourb;
     }
 
     /**
-     * Inicia el proceso internamente
+     * Initializes the process and start listening events
      */
     public async init(): Promise<void> {
 
         await this._router.bind("tcp://" + this._ip + ":" + this._port)
         .then(() => {
-            console.log("Proceso " + this._id + " escuchando...");
+            console.log("Process " + this._id + " listening...");
         });
 
         this.listen();
     }
 
     /**
-     * Crea una nueva conexión y la conecta con la dirección del proceso externo
-     * @param ip ip del proceso externo
-     * @param port puerto del proceso externo
+     * Creates a new connection with its dealer and connects to other client
+     * @param ip other process ip
+     * @param port other process port
      */
     public connect(id: string, ip: string, port: number) {
 
@@ -89,51 +89,51 @@ export default class Process extends EventEmitter {
 
         const connection: Connection = new Connection(id, connectionDealer);
 
-        this._urbto.peers.push(connection);
+        this._atourb.peers.push(connection);
     }
 
     /**
-     * Termina el proceso correctamente
+     * Termitates the process correctly
      */
     public close(): void {
 
-        this._urbto.peers.forEach((peer: Connection) => {
+        this._atourb.peers.forEach((peer: Connection) => {
             peer.close();
         });
         this._router.close();
     }
 
     /**
-     * Escucha contínuamente los balls enviados por otros procesos
+     * Listen to other processes events
      */
     private listen(): void {
 
         const processContext: Process = this;
 
         this._router.receive().then((buffer) => {
-            const origin: string = buffer[0].toString();
+            // const origin: string = buffer[0].toString();
             const event: Event = Event.deserialize(JSON.parse(buffer[1].toString()));
 
-            this._urbto.recieveHandler(event, origin);
-            processContext.listen(); // Escuchamos al siguiente
+            this._atourb.receiveHandler(event);
+            processContext.listen(); // Start listening next one
         });
     }
 
     /**
-     * Construye un evento con el mensaje y lo envia
-     * al componente de difusión
-     * @param msg Mensaje a enviar
+     * Builds an event with its message and sends it
+     * to the algorithm
+     * @param msg message to send
      */
-    public urbtoBroadcast(msg: Message): void {
+    public broadcast(msg: Message): void {
 
         const eventId: string = this._id + "_#" + this.newEventId();
 
         const event: Event = new Event(eventId, msg);
-        this._urbto.urbtoBroadcast(event);
+        this._atourb.broadcast(event);
     }
 
     /**
-     * Devuelve un nuevo id de evento
+     * Returns a new event unique id
      */
     private newEventId(): number {
         return this._eventIdInc++;

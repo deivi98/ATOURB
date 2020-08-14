@@ -1,12 +1,10 @@
 /**
- * Clase Clock
- * Simple clase para obtener el tiempo
- * actual en milisegundos
+ * Clock class
  */
 export default class Clock {
 
     /**
-     * Devuelve el tiempo ahora
+     * Returns the actual time
      */
     public static getTime(): number {
         return Date.now();
@@ -15,8 +13,7 @@ export default class Clock {
 }
 
 /**
- * Clase LogicalClock
- * Simple clase para obtener el tiempo logico actual
+ * LogicalClock class
  */
 export class LogicalClock {
     
@@ -27,14 +24,14 @@ export class LogicalClock {
     }
 
     /**
-     * Devuelve el tiempo ahora
+     * Returns the actual time
      */
     public getTime(): number {
         return this._logicalTime++;
     }
     
     /**
-     * Actualiza el tiempo logico
+     * Updates the clock
      */
     public updateClock(time: number) {
 

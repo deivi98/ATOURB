@@ -1,22 +1,21 @@
 import Message from '../app/message';
 
 /**
- * Clase Event
- * Contiene los datos de los eventos que se
- * envían entre procesos
+ * Event class
+ * Contains the message and the event parameters
  */
 export default class Event {
 
-    private _id: string;            // ID único de evento (Incluso entre infinitos procesos)
-    private _sourceId: string;      // ID único de proceso/cliente emisor
-    private _nor: number;           // Número de recepciones del evento
-    private _ts: number;            // Tiempo en el que fue emitido
-    private _msg: Message;          // Mensaje del evento
+    private _id: string;            // Unique event ID
+    private _sourceId: string;      // Unique process ID
+    private _nor: number;           // Number of receptions of the event
+    private _ts: number;            // Timestamp in which the event was created
+    private _msg: Message;          // Message information
 
     /**
-     * Constructor del evento
-     * @param id id único del evento
-     * @param msg mensaje del evento
+     * Event constructor
+     * @param id event unique id
+     * @param msg event message
      */
     constructor(id: string, msg: Message, sourceId: string = undefined, nor: number = undefined, ts: number = undefined) {
         this._id = id;
@@ -27,81 +26,84 @@ export default class Event {
     }
 
     /**
-     * Devuelve el id
+     * Returns the event id
      */
     get id(): string {
         return this._id;
     }
 
     /**
-     * Devuelve el id del proceso/cliente emisor
+     * Returns the process sender id
      */
     get sourceId(): string {
         return this._sourceId;
     }
 
     /**
-     * Setea el id del proceso/cliente emisor
+     * Sets the sender process
      */
     set sourceId(sourceId: string) {
         this._sourceId = sourceId;
     }
 
     /**
-     * Devuelve el nor del evento
+     * Returns the number of receptions of the event
      */
     get nor(): number {
         return this._nor;
     }
 
     /**
-     * Setea el ttl del evento
+     * Sets the number of receptions of the event
      */
     set nor(nor: number) {
         this._nor = nor;
     }
 
     /**
-     * Devuelve el tiempo del evento
+     * Returns the timestamp of the event
      */
     get ts(): number {
         return this._ts;
     }
 
     /**
-     * Setea el tiempo del evento
+     * Sets the timestamp of the event
      */
     set ts(ts: number) {
         this._ts = ts;
     }
 
     /**
-     * Devuelve el mensaje del evento
+     * Returns the message of the event
      */
     get msg(): Message {
         return this._msg;
     }
 
     /**
-     * Setea el mensaje del evento
+     * Sets the message of the event
      */
     set msg(msg: Message) {
         this._msg = msg;
     }
 
+    /**
+     * Returns an exact copy of the object
+     */
     public copy(): Event {
         return new Event(this._id, this._msg.copy(), this._sourceId, this._nor, this._ts);
     }
 
     /**
-     * Serializa el evento
+     * Serializes the event
      */
     public serialize(): string {
         return JSON.stringify(this);
     }
 
     /**
-     * Deserializa el objeto para obtener el Evento
+     * Deseralize the event back to an object
      * @param object objeto
      */
     public static deserialize(object: Object): Event {
