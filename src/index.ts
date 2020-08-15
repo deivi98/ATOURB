@@ -101,6 +101,8 @@ function listenMessages(client: Client) {
         fs.unlinkSync('test/' + client.id + '.log');
     }
     
+    const msg: string = sprintfjs.sprintf("%15s | %20s (%5s) [%20s] [%10s]\n", "PRINT ORDER", "SENDER PROCESS", "ID", "TIMESTAMP", "LATENCY");
+    fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
     // fs.closeSync(fs.openSync("test/" + client.id + ".log", 'w'));
     
     var nextOutputMessage: number = 0;
@@ -112,7 +114,8 @@ function listenMessages(client: Client) {
             console.log("CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
         } else {
             const id: string = event.id.split("_")[1];
-            const msg: string = sprintfjs.sprintf("%9d | %20s (%5s) [%20d] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts);
+            const latency: string = (Date.now() - event.msg.ts) + "ms";
+            const msg: string = sprintfjs.sprintf("%15d | %20s (%5s) [%20d] [%10s] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts, latency);
             fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
         }
     });
@@ -124,7 +127,8 @@ function listenMessages(client: Client) {
             console.log("[DISORDER] CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
         } else {
             const id: string = event.id.split("_")[1];
-            const msg: string = sprintfjs.sprintf("[DISORDER] %9d | %20s (%5s) [%20d] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts);
+            const latency: string = (Date.now() - event.msg.ts) + "ms";
+            const msg: string = sprintfjs.sprintf("[DISORDER] %15d | %20s (%5s) [%20d] [%10s] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts, latency);
             fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
         }
     });
@@ -226,13 +230,51 @@ function listenKeyboardMessages(): void {
 
             localClient.broadcast(new Message(args[1]));
         } else {
+
             if(cmd.toLowerCase() == "exit") {
                 closeClients();
+                return;
+            } else if(cmd.toLowerCase() == "killone") {
+                closeRandomClient(); 
+                return;
+            } else if(cmd.toLowerCase() == "pause") {
+                clearInterval(messageInterval);
+                console.log("Continuous random message sending paused.");
+                return;
+            } else if(cmd.toLowerCase() == "resume") {
+                messageInterval = setInterval(randomMessage, delayMessageMillis);
+                console.log("Continuous random message sending resumed.");
                 return;
             }
             console.log("ERROR: Invalid format. To send a message type <client_id>:<message> and press enter");
         }
     });
+}
+
+var closedClients: number = 0;
+
+/**
+ * Closes a random client
+ */
+function closeRandomClient() {
+
+    if(closedClients >= N) {
+        console.log("There are no more clients to kill.");
+        return;
+    }
+
+    var clientPos: number = Math.floor(Math.random() * localClients.length);
+    var randomClient: Client = localClients[clientPos];
+
+    while(randomClient.closed) {
+        clientPos = Math.floor(Math.random() * localClients.length);
+        randomClient = localClients[clientPos];
+    }
+
+    randomClient.close();
+    console.log("Client " + (clientPos + 1) + " terminated.");
+
+    closedClients++;
 }
 
 /**
@@ -241,7 +283,9 @@ function listenKeyboardMessages(): void {
  */
 function closeClients(): void {
     for(var i: 0; i < localClients.length; i++) {
-        localClients[i].close();
+        if(!localClients[i].closed) {
+            localClients[i].close();
+        }
     }
     rd.close();
     clearInterval(messageInterval);

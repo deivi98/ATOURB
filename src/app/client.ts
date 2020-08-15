@@ -11,6 +11,7 @@ export default class Client extends EventEmitter {
 
     private _id: string;            // Unique ID of client
     private _process: Process;      // Associated process to this client
+    private _closed: boolean;       // Check if the client has been closed
 
     /**
      * Constructor
@@ -22,6 +23,7 @@ export default class Client extends EventEmitter {
         super();
         this._id = id;
         this._process = new Process(id, ip, port, n, f, logical);
+        this._closed = false;
     }
     
     /**
@@ -43,6 +45,13 @@ export default class Client extends EventEmitter {
      */
     get port(): number {
         return this._process.port;
+    }
+
+    /**
+     * Returns if the client has been closed
+     */
+    get closed(): boolean {
+        return this._closed;
     }
 
     /**
@@ -79,6 +88,7 @@ export default class Client extends EventEmitter {
      */
     public close(): void {
         this._process.close();
+        this._closed = true;
     }
 
     /**
@@ -86,7 +96,9 @@ export default class Client extends EventEmitter {
      * @param msg message to send
      */
     public broadcast(msg: Message): void {
-        this._process.broadcast(msg);
+        if(!this._closed) {
+            this._process.broadcast(msg);
+        }
     }
 }
 

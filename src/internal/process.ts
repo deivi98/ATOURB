@@ -19,6 +19,7 @@ export default class Process extends EventEmitter {
     private _port: number;                                      // Process port
     private _router: Router;                                    // Process router to listen
     private _atourb: ATOURB;                                    // ATOURB component
+    private _closed: boolean;                                   // Check if the process is closed 
 
     /**
      * Process constructor
@@ -33,6 +34,7 @@ export default class Process extends EventEmitter {
         this._port = port;
         this._router = new Router();
         this._atourb = new ATOURB(this, n, f, logical);
+        this._closed = false;
     }
 
     /**
@@ -61,6 +63,13 @@ export default class Process extends EventEmitter {
      */
     get atourb(): ATOURB {
         return this._atourb;
+    }
+    
+    /**
+     * Returns if the process has been closed
+     */
+    get closed(): boolean {
+        return this._closed;
     }
 
     /**
@@ -100,7 +109,8 @@ export default class Process extends EventEmitter {
         this._atourb.peers.forEach((peer: Connection) => {
             peer.close();
         });
-        this._router.close();
+        this._closed = true;
+        // this._router.close();
     }
 
     /**
@@ -115,7 +125,10 @@ export default class Process extends EventEmitter {
             const event: Event = Event.deserialize(JSON.parse(buffer[1].toString()));
 
             this._atourb.receiveHandler(event);
-            processContext.listen(); // Start listening next one
+
+            if(!this._closed) {
+                processContext.listen(); // Start listening next one
+            }
         });
     }
 

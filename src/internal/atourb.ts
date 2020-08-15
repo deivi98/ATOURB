@@ -99,7 +99,7 @@ export default class ATOURB {
 
                 if(!peer.closed) {
                     peer.dealer.send(event.serialize()).catch((err: any) => {
-                        console.log(err);
+                        // console.log(err);
                     });
                 }
             });

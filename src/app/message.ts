@@ -6,6 +6,7 @@
 export default class Message {
 
     private _data: string;          // Message data
+    private _ts: number;            // Real timestamp of creation
 
     /**
      * Message constructor
@@ -13,6 +14,7 @@ export default class Message {
      */
     constructor(data: string) {
         this._data = data;
+        this._ts = Date.now();
     }
 
     /**
@@ -20,6 +22,13 @@ export default class Message {
      */
     get data(): string {
         return this._data;
+    }
+    
+    /**
+     * Returns the timestamp of the message
+     */
+    get ts(): number {
+        return this._ts;
     }
 
     public copy(): Message {
