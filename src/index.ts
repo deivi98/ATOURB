@@ -16,6 +16,8 @@ var messageInterval: NodeJS.Timeout;        // NodeJS interval to repeat random 
 var nextMessage: number = 0;                // Message generation autoincremental identifier
 var manual: boolean = false;                // Wether the message sending is manual or not
 var logicalTime: boolean = true;            // Wether the clock being used is logical or not
+var avgLatency: number = 0;                 // Average of latency of all messages delivered by all processes in this program node
+var totalDeliveredMessages: number = 0;     // Total delivered messages of all clients
 
 if(!fs.existsSync("network.json")) {
     console.log("The network configuration (network.json) does not exist!");
@@ -89,7 +91,7 @@ function randomMessage() {
     
     randomClient.broadcast(new Message("Automated message " + (++nextMessage)));
 }
-
+    
 /**
  * Listen to client messages and saves them to the logs
  * @param client client
@@ -101,10 +103,10 @@ function listenMessages(client: Client) {
         fs.unlinkSync('test/' + client.id + '.log');
     }
     
-    const msg: string = sprintfjs.sprintf("%15s | %20s (%5s) [%20s] [%10s]\n", "PRINT ORDER", "SENDER PROCESS", "ID", "TIMESTAMP", "LATENCY");
+    const msg: string = sprintfjs.sprintf("%15s | %20s (%5s) [%20s]\n", "PRINT ORDER", "SENDER PROCESS", "ID", "TIMESTAMP");
     fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
     // fs.closeSync(fs.openSync("test/" + client.id + ".log", 'w'));
-    
+
     var nextOutputMessage: number = 0;
 
     // Client listen to message and logs it sinchronously (to avoid disorder when logging)
@@ -114,8 +116,10 @@ function listenMessages(client: Client) {
             console.log("CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
         } else {
             const id: string = event.id.split("_")[1];
-            const latency: string = (Date.now() - event.msg.ts) + "ms";
-            const msg: string = sprintfjs.sprintf("%15d | %20s (%5s) [%20d] [%10s] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts, latency);
+            const latency: number = Date.now() - event.msg.ts;
+            avgLatency += latency;
+            totalDeliveredMessages++;
+            const msg: string = sprintfjs.sprintf("%15d | %20s (%5s) [%20d] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts);
             fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
         }
     });
@@ -127,8 +131,10 @@ function listenMessages(client: Client) {
             console.log("[DISORDER] CLIENT " + client.id + " | " + event.sourceId + "(" + event.id +  ") > " + event.msg.data);
         } else {
             const id: string = event.id.split("_")[1];
-            const latency: string = (Date.now() - event.msg.ts) + "ms";
-            const msg: string = sprintfjs.sprintf("[DISORDER] %15d | %20s (%5s) [%20d] [%10s] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts, latency);
+            const latency: number = Date.now() - event.msg.ts;
+            avgLatency += latency;
+            totalDeliveredMessages++;
+            const msg: string = sprintfjs.sprintf("[DISORDER] %15d | %20s (%5s) [%20d] > " + event.msg.data + '\n', ++nextOutputMessage, event.sourceId, id, event.ts);
             fs.appendFileSync('test/' + client.id + '.log', msg, 'utf8');
         }
     });
@@ -237,6 +243,17 @@ function listenKeyboardMessages(): void {
             } else if(cmd.toLowerCase() == "killone") {
                 closeRandomClient(); 
                 return;
+            } else if(cmd.toLowerCase().startsWith("kill")) {
+                const args = cmd.split(":");
+
+                if(args.length == 2) {
+                    const l: number = parseInt(args[1]);
+                    
+                    for(var i: number = 0; i < l; i++) {
+                        closeRandomClient();
+                    }
+                }
+                return;
             } else if(cmd.toLowerCase() == "pause") {
                 clearInterval(messageInterval);
                 console.log("Continuous random message sending paused.");
@@ -290,9 +307,16 @@ function closeClients(): void {
     rd.close();
     clearInterval(messageInterval);
     console.log("Closing clients and connections...");
+    printResults();
     setTimeout(function() {
         process.exit();
     }, 5000);
+}
+
+function printResults(): void {
+    console.log("------------ RESULTS ---------------");
+    console.log("CLIENTS AVG MESSAGE LATENCY: " + (avgLatency / totalDeliveredMessages));
+    console.log("------------------------------------");
 }
 
 process.on('SIGINT', closeClients);

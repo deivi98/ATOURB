@@ -179,7 +179,7 @@ export default class ATOURB {
      * @param event evento a comprobar
      */
     private isDeliverable(event: Event): boolean {
-        return event.nor >= this._n - this._f;
+        return event.nor >= this._n - this._f - 1;
     }
     
 }
